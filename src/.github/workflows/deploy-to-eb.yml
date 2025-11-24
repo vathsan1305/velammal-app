@@ -1,0 +1,66 @@
+name: Build and Deploy to Elastic Beanstalk
+on:
+  push:
+    branches: [ main ]
+
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+
+    steps:
+    - uses: actions/checkout@v4
+
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+
+    - name: Build with Maven
+      run: mvn -B clean package -DskipTests
+
+
+    - name: Upload artifact to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
+        aws configure set region "$AWS_REGION"
+        aws s3 cp target/*.war s3://$S3_BUCKET/artifacts/velammal-school-app.war
+
+
+    - name: Create EB application version
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
+      run: |
+        VERSION_LABEL="gh-${GITHUB_SHA::8}-$(date +%s)"
+        aws configure set region "$AWS_REGION"
+        aws elasticbeanstalk create-application-version \
+          --application-name "$EB_APP_NAME" \
+          --version-label "$VERSION_LABEL" \
+          --source-bundle S3Bucket="$S3_BUCKET",S3Key="artifacts/velammal-school-app.war"
+        echo "VERSION_LABEL=$VERSION_LABEL" >> $GITHUB_ENV
+
+
+    - name: Deploy to EB environment
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
+        EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
+      run: |
+        aws configure set region "$AWS_REGION"
+        aws elasticbeanstalk update-environment \
+          --environment-name "$EB_ENV_NAME" \
+          --version-label "$VERSION_LABEL"
