@@ -5,7 +5,7 @@ public class MySqlSConnection {
 	
 	public static Connection getMySqlConnection() throws SQLException{
 		
-		ResourceBundle bundle = ResourceBundle.getBundle("resources/application"); //bundling up the properties
+		ResourceBundle bundle = ResourceBundle.getBundle("application"); //bundling up the properties
 		
 		return DriverManager.getConnection(bundle.getString("jdbc.url"),bundle.getString("jdbc.username"),bundle.getString("jdbc.password")); //connecting to dbms
 	}
