@@ -5,6 +5,12 @@ public class MySqlSConnection {
 	
 	public static Connection getMySqlConnection() throws SQLException{
 		
+		 try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("MySQL JDBC Driver not found in WAR", e);
+        }
+		
 		ResourceBundle bundle = ResourceBundle.getBundle("application"); //bundling up the properties
 		
 		return DriverManager.getConnection(bundle.getString("jdbc.url"),bundle.getString("jdbc.username"),bundle.getString("jdbc.password")); //connecting to dbms
