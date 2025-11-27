@@ -61,7 +61,7 @@
     </dependencies>
 
     <build>
-        <finalName>velammal-school-app</finalName>
+        <finalName>ROOT</finalName>
 
         <plugins>
 

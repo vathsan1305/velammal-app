@@ -30,7 +30,7 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
         export AWS_REGION=$AWS_REGION
 
-        aws s3 cp target/*.war s3://$S3_BUCKET/artifacts/velammal-school-app.war
+        aws s3 cp target/ROOT.war s3://$S3_BUCKET/artifacts/ROOT.war
 
     - name: Create EB application version
       env:
@@ -49,7 +49,7 @@ jobs:
         aws elasticbeanstalk create-application-version \
           --application-name "$EB_APP_NAME" \
           --version-label "$VERSION_LABEL" \
-          --source-bundle S3Bucket="$S3_BUCKET",S3Key="artifacts/velammal-school-app.war"
+          --source-bundle S3Bucket="$S3_BUCKET",S3Key="artifacts/ROOT.war"
 
         echo "VERSION_LABEL=$VERSION_LABEL" >> $GITHUB_ENV
 
